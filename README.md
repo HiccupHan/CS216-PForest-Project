@@ -3,7 +3,7 @@ Based on the paper "p-forest: In network inference with random forests"
 
 Download the [Network Intrusion dataset(CIC-IDS- 2017)]{https://www.kaggle.com/datasets/chethuhn/network-intrusion-dataset} and place it in a data folder before running the code.
 
-framework.py is the main entry point. Run python framework.py to generate the models, rmt simulator inputs, and the tcam rules in a readable json format. model.py contains code that trains the random forests. optimize_pforest.py contains code that compresses pforest implementation, and plain_pforest.py contains the vanilla implementation of the pforest. visualize.py generates images for a sample decision tree from both methods and CRAM tables for both the random forests and a sample decision tree.
+framework.py is the main entry point. Run python framework.py to generate the models, rmt simulator inputs, and the tcam rules in a readable json format. model.py contains code that trains the random forests. optimize_pforest.py contains code that compresses pforest implementation, and plain_pforest.py contains the vanilla implementation of the pforest. visualize.py generates images for a sample decision tree from both methods, runs sim.py (rmt simulator) provided by the TA for the decision trees, and the simulated CRAM resource table for random forests (this is due to the rf being too big to actually fit in the simulator setup)
 
 ## RMT Simulator: Sample simulator code for an ideal RMT chip
 

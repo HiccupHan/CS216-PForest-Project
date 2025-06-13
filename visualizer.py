@@ -3,10 +3,31 @@ import json
 import matplotlib.pyplot as plt
 import networkx as nx
 import math
+import subprocess
 TCAM_DIR = "./tcam_rules"
 VIS_DIR = "./tree_images"
+RMT_DIR = "./rmt_input"
+OUTPUT_DIR = "./resource_summary"
 
 os.makedirs(VIS_DIR, exist_ok=True)
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+def run_simulator_on_file(json_path, output_txt_path):
+    try:
+        result = subprocess.run(
+            ["python", "sim.py", json_path],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        with open(output_txt_path, 'a') as f:
+            f.write(f"\n==== Simulation Output for {json_path} ====\n")
+            f.write(result.stdout)
+    except subprocess.CalledProcessError as e:
+        print(f"Simulator failed on {json_path}: {e.stderr}")
+        with open(output_txt_path, 'a') as f:
+            f.write(f"\n==== Simulation Failed for {json_path} ====\n")
+            f.write(e.stderr)
 
 def load_tcam_rules(file_name):
     path = os.path.join(TCAM_DIR, file_name)
@@ -88,25 +109,43 @@ def print_resource_table(table, title="CRAM Resource Summary"):
     for k, v in table.items():
         print(f"{k:30}: {v}")
 
+def write_resource_table_to_file(table, title, filepath):
+    with open(filepath, 'a') as f:
+        f.write(f"\n{title}:\n")
+        for k, v in table.items():
+            f.write(f"{k:30}: {v}\n")
 
 if __name__ == "__main__":
     context_lens = [3, 5, 10] # or 5 or 10
+    rmt_output_file = os.path.join(OUTPUT_DIR, "rmt_output.txt")
+    resource_output_file = os.path.join(OUTPUT_DIR, "resource_output.txt")
+
     for context_len in context_lens:
-        tcam_name = f"tcam_tree_ctx{context_len}.json"
-        opt_tcam_name = f"tcam_tree_opt_ctx{context_len}.json"
-        forest_name = f"tcam_forest_ctx{context_len}.json"
-        opt_forest_name = f"tcam_forest_opt_ctx{context_len}.json"
-        tcam_rules = load_tcam_rules(tcam_name)
-        forest_rules = load_tcam_rules(forest_name)
-        opt_tcam_rules = load_tcam_rules(opt_tcam_name)
-        opt_forest_rules = load_tcam_rules(opt_forest_name)
+        tree_tcam_name = f"tcam_tree_ctx{context_len}.json"
+        opt_tree_tcam_name = f"tcam_tree_opt_ctx{context_len}.json"
+        forest_tcam_name = f"tcam_forest_ctx{context_len}.json"
+        opt_forest_tcam_name = f"tcam_forest_opt_ctx{context_len}.json"
+        tcam_rules = load_tcam_rules(tree_tcam_name)
+        forest_rules = load_tcam_rules(forest_tcam_name)
+        opt_tcam_rules = load_tcam_rules(opt_tree_tcam_name)
+        opt_forest_rules = load_tcam_rules(opt_forest_tcam_name)
         visualize_decision_tree(tcam_rules, f"Decision Tree Visualization (Context={context_len})")
         visualize_decision_tree(opt_tcam_rules, f"Optimized Decision Tree Visualization (Context={context_len})")
         table = generate_tree_cram_resource_table(tcam_rules)
-        print_resource_table(table, f"CRAM Resource Summary For Plain pForest Decision Tree (Context={context_len})")
+        # print_resource_table(table, f"CRAM Resource Summary For Plain pForest Decision Tree (Context={context_len})")
+        write_resource_table_to_file(table, f"CRAM Resource Summary For Plain pForest Decision Tree (Context={context_len})", resource_output_file)
         table = generate_forest_cram_resource_table(forest_rules)
-        print_resource_table(table, f"CRAM Resource Summary For Plain pForest Random Forest (Context={context_len})")
+        write_resource_table_to_file(table, f"CRAM Resource Summary For Plain pForest Random Forest (Context={context_len})", resource_output_file)
+        # print_resource_table(table, f"CRAM Resource Summary For Plain pForest Random Forest (Context={context_len})")
         table = generate_tree_cram_resource_table(opt_tcam_rules)
-        print_resource_table(table, f"CRAM Resource Summary For Optimized pForest Decision Tree (Context={context_len})")
+        write_resource_table_to_file(table, f"CRAM Resource Summary For Optimized pForest Decision Tree (Context={context_len})", resource_output_file)
+        # print_resource_table(table, f"CRAM Resource Summary For Optimized pForest Decision Tree (Context={context_len})")
         table = generate_forest_cram_resource_table(opt_forest_rules)
-        print_resource_table(table, f"CRAM Resource Summary For Optimized pForest Random Forest (Context={context_len})")
+        write_resource_table_to_file(table, f"CRAM Resource Summary For Optimized pForest Random Forest (Context={context_len})", resource_output_file)
+        # print_resource_table(table, f"CRAM Resource Summary For Optimized pForest Random Forest (Context={context_len})")
+
+        tree_rmt_name = os.path.join(RMT_DIR, f"rmt_tree_ctx{context_len}.json")
+        opt_tree_rmt_name = os.path.join(RMT_DIR, f"rmt_tree_opt_ctx{context_len}.json")
+        run_simulator_on_file(tree_rmt_name, rmt_output_file)
+        run_simulator_on_file(opt_tree_rmt_name, rmt_output_file)
+        
