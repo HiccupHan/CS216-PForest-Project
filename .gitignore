@@ -3,3 +3,9 @@
 /models
 /tcam_rules
 /rmt_input
+/rmt_input_d
+/decision_input_d
+/rules_d
+/tcam_rules_d
+/old_model
+/tree_images
